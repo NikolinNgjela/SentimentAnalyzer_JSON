@@ -448,15 +448,7 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
             Logger.getLogger(SentimetAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        //JOptionPane.showMessageDialog(null, "FROM: " + fromDateTime + "   TO: " + toDateTime , "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);
-        DBManager dbmanager = new DBManager(2, this.fromDateTime, this.toDateTime);
         
-        LinkedList<EntryElements> list;
-        list = dbmanager.selectListForMainWindow();
-        
-        for(int i=1; i<11; i++){
-            this.tableModelTopTen.addRow(new Object[] { list.get(i).getKey(), list.get(i).getValue(), Boolean.FALSE });
-        }
     }
     
     private void sldSubIntDurationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sldSubIntDurationMouseClicked
@@ -492,7 +484,7 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         LinkedList<EntryElements> list = jsonparsert.selectListForMainWindow(response);
         
         //POPULATE CONTROLLER ON GUI
-        for(int i=0; i<10; i++){
+        for(int i=0; i<Integer.parseInt(this.txtNumberOfWords.getText()); i++){
            this.tableModelTopTen.addRow(new Object[] { list.get(i).getKey(), list.get(i).getValue(), Boolean.FALSE });
         }
 
@@ -533,12 +525,13 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
 
     private void btnTestProgressBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestProgressBarActionPerformed
         // TODO add your handling code here:
-        this.prgBarRunningTIme.setMaximum(100);
-        this.prgBarRunningTIme.setMinimum(0);
         
-        for(int i=0; i<=100; i = i + 10){
-            this.prgBarRunningTIme.setValue(i);
-        }
+        this.prgBarRunningTIme.setIndeterminate(true);
+        
+        //this.prgBarRunningTIme.setMaximum(100);
+        //this.prgBarRunningTIme.setMinimum(0);
+        
+       
     }//GEN-LAST:event_btnTestProgressBarActionPerformed
 
     private void btnGetJsonHTTPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetJsonHTTPActionPerformed
