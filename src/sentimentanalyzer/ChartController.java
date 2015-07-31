@@ -28,6 +28,7 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.plot.PiePlot;
 
 /**
  *
@@ -68,18 +69,25 @@ public class ChartController {
         
         DefaultPieDataset data = new DefaultPieDataset();
         
-        data.setValue("Positive", 43.2);
-        data.setValue("Neutral", 33.9);
-        data.setValue("Negative", 22.9);
+       //data.setValue("Positive", 43.2);
+        data.setValue("Pie chart is not available", 100);
+        //data.setValue("Negative", 22.9);
         
         JFreeChart chart = ChartFactory.createPieChart(
         "Sent. Distr. for Testing",
         data,
-        true, // legend?
-        true, // tooltips?
+        false, // legend?
+        false, // tooltips?
         false // URLs?
         );
         ChartPanel CP = new ChartPanel(chart);
+        
+        PiePlot plot = (PiePlot) chart.getPlot();
+        plot.setSectionPaint("Pie chart is not available", Color.LIGHT_GRAY);
+        
+        //TextTitle legendText = new TextTitle("This is LEGEND: ");
+        //legendText.setPosition(RectangleEdge.BOTTOM);
+        // chart.addSubtitle(legendText);
         
         pnlPieChart.setLayout(new java.awt.BorderLayout());
         pnlPieChart.add(CP,BorderLayout.CENTER);
@@ -105,14 +113,14 @@ public class ChartController {
                 }
             }
             if(police == 0){
-                series.add(0, listOfData.lists.get(i).cicleOfData);
+                series.add(listOfData.lists.get(i).cicleOfData, 0);
                 //JOptionPane.showMessageDialog(null, "DATE: " + listOfData.lists.get(i).cicleOfData + "   COUNT: 0 - e jona", "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);  
             }else{
                 police = 0;
             }
         }
         
-        series.setKey(word + " " + count);
+        series.setKey(word + " ");
         dataset.addSeries(series);
         
         //.postTheTimeSeriesChartOnTheGUI(timeSeriesChart, dataset, word, "counts", "words", row);
@@ -169,6 +177,10 @@ public class ChartController {
         this.wordCountsChart.setBackgroundPaint(Color.white);
         this.wordCountsChart.setBorderPaint(Color.orange);
         ChartPanel CP = new ChartPanel(this.wordCountsChart);
+        CP.setPopupMenu(null);
+        CP.setDomainZoomable(false);
+        CP.setRangeZoomable(false);
+        CP.setMouseZoomable(false);
         timeSeriesChart.setLayout(new java.awt.BorderLayout());
         timeSeriesChart.add(CP,BorderLayout.CENTER);
         timeSeriesChart.revalidate();
