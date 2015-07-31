@@ -13,6 +13,7 @@ package sentimentanalyzer;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -20,18 +21,18 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.util.LinkedList;
 import java.util.Locale;
 import javax.swing.table.DefaultTableModel;
 
 public class JsonParserT {
     private static final String filePath = "twitter.json";
     
-    public LinkedList<String> llTitlesWords;
-    public LinkedList<String> listToHoldCounted;
+    public ArrayList<String> llTitlesWords;
+    public ArrayList<String> listToHoldCounted;
     
-    public LinkedList<EntryElements> storeCountedWords;
-    public LinkedList<EntryElementsDate> wordsAndCreatedDates;
+    public ArrayList<EntryElements> storeCountedWords;
+    
+    public ArrayList<EntryElementsDate> wordsAndCreatedDates;
     public EntryElementsManager storeCountedWords_forPloting;
     
     public Stopwords stopwords;
@@ -40,11 +41,11 @@ public class JsonParserT {
     
     
     public JsonParserT(DefaultTableModel tableForPrint_model){
-        this.llTitlesWords = new LinkedList<>();
-        this.listToHoldCounted = new LinkedList<>();
+        this.llTitlesWords = new ArrayList<>();
+        this.listToHoldCounted = new ArrayList<>();
         
-        this.storeCountedWords = new LinkedList<>();
-        this.wordsAndCreatedDates = new LinkedList<>();
+        this.storeCountedWords = new ArrayList<>();
+        this.wordsAndCreatedDates = new ArrayList<>();
         this.storeCountedWords_forPloting = new EntryElementsManager();
         
         this.stopwords = new Stopwords();
@@ -117,7 +118,7 @@ public class JsonParserT {
         this.printTop_fromInbuildMergeSort(10);
     }
     
-    public LinkedList<EntryElements> selectListForMainWindow(String jsonRequest){
+    public ArrayList<EntryElements> selectListForMainWindow(String jsonRequest){
         this.storeCountedWords.clear();
 
         this.selectAndLoopOverResults_JSON(jsonRequest);
@@ -203,7 +204,7 @@ public class JsonParserT {
         return null;
     }
     
-    public void countOccouranceOfEachWordInListAndPopulateNewLists_forUnsortedListsPopulation(LinkedList<String> words){
+    public void countOccouranceOfEachWordInListAndPopulateNewLists_forUnsortedListsPopulation(ArrayList<String> words){
         for(int i=0; i<words.size(); i++){
             if(!this.listToHoldCounted.contains(words.get(i))){
                 int count = Collections.frequency(words, words.get(i));
