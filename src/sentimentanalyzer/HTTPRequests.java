@@ -8,6 +8,8 @@ package sentimentanalyzer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -52,6 +54,19 @@ public class HTTPRequests {
             System.out.println(ex.getMessage());
             return null;
         }
+    }
+    
+    public static final String getJsonWithHTTPRequest(String spnDayChoser, String spnToTime, String keyword_local, String decode_local, String url_local){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM d H:m:s z yyyy", Locale.ENGLISH);
+        LocalDateTime fromDate_parsed = LocalDateTime.parse(spnDayChoser, formatter);
+        LocalDateTime toDate_parsed = LocalDateTime.parse(/*this.spnToTime.getValue().toString()*/spnToTime, formatter);
+        
+        HTTPRequests getHttp = new HTTPRequests(fromDate_parsed, toDate_parsed, keyword_local, decode_local, url_local/*this.txtKeyword.getText(), this.txtDecode.getText(), this.txtURL.getText()*/);
+        String response = getHttp.getHTTPResponce_readURL();
+        
+        //System.out.println(response);
+        
+        return response;
     }
        
 }
