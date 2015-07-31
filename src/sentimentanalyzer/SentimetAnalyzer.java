@@ -5,17 +5,25 @@
  */
 package sentimentanalyzer;
 
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -41,7 +49,8 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
     
     public int localPlotingPolice_variableToCheckIfListIsFull_ifNullThenDoNotPlotGraph = 0;
     
-    
+    private WorkingThread backgroundThreadWorker;
+
     /**
      * Creates new form SentimetAnalyzer
      */
@@ -58,13 +67,16 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         
         //TESTING DATES AND TIME SETTING, NOT TO PUT MANUALLY
         try{
-            Date testingDateFrom = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS").parse("2015-03-21 01:00:00.000");
-            Date testingDateTo = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS").parse("2015-03-21 10:00:00.000");
+            Date testingDateFrom = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS").parse("2015-06-30 01:00:00.000");
+            Date testingDateTo = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS").parse("2015-07-31 10:00:00.000");
             this.spnDayChoser.setValue(testingDateFrom);
             this.spnToTime.setValue(testingDateTo);
         }catch(Exception e){
             System.out.println(e.getMessage());
         }
+        
+        this.btnRun.setText("RUN");
+        this.btnRun.setBackground(Color.green);
     }
     
     //NEW FUNCTION TO CONTROL LISTENER ON THE CHECKBOXES////////////
@@ -127,20 +139,76 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         
         this.tblIndividualWords.setModel(this.tableModelTopTen);
         this.tblIndividualWords.getModel().addTableModelListener(listenerForTableCheckboxes);
+        
+        //Adding vertical Scrollbar 
+        tblIndividualTweets.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+        //new JScrollPane(tblIndividualTweets, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        
     }
     
-    public String getJsonWithHTTPRequest(){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM d H:m:s z yyyy", Locale.ENGLISH);
-        LocalDateTime fromDate_parsed = LocalDateTime.parse(this.spnDayChoser.getValue().toString(), formatter);
-        LocalDateTime toDate_parsed = LocalDateTime.parse(this.spnToTime.getValue().toString(), formatter);
-        
-        HTTPRequests getHttp = new HTTPRequests(fromDate_parsed, toDate_parsed, this.txtKeyword.getText(), this.txtDecode.getText(), this.txtURL.getText());
-        String response = getHttp.getHTTPResponce_readURL();
-        
-        //System.out.println(response);
-        
-        return response;
+    public void prepareButtonsForRun(){
+        this.btnRun.setText("RUN");
+        this.btnRun.setBackground(Color.green);
+
+        this.btnTestProgressBar.setEnabled(true);
+        this.btnGetJsonHTTP.setEnabled(true);
+        this.btnClean.setEnabled(true);
+        this.btnSave.setEnabled(true);
     }
+    
+    public void prepareButtonsForCancel(){
+        this.btnRun.setText("CANCEL");
+        this.btnRun.setBackground(Color.red);
+
+        this.btnTestProgressBar.setEnabled(false);
+        this.btnGetJsonHTTP.setEnabled(false);
+        this.btnClean.setEnabled(false);
+        this.btnSave.setEnabled(false);
+    }
+    
+    public void setLabaleInformation(String labelToSet){
+        this.lblMode.setText(labelToSet);
+    }
+    
+    private void cancelWorkingThread() {
+        this.backgroundThreadWorker.cancel(true);
+        this.backgroundThreadWorker = null;
+    }
+    
+    private void runWorkingCycle(){
+        //PASSING ALL NECCESSARY PARAMETERS TO INITIALIZE AND USE THE THREAD LIKE IN THE MAIN WINDOW
+        this.backgroundThreadWorker = new WorkingThread(this.spnDayChoser.getValue().toString(), this.spnToTime.getValue().toString(), this.txtURL.getText(), this.txtKeyword.getText(), this.txtDecode.getText(), this.sldSubIntDuration.getValue(), this, this.pnlWordsCount);
+    
+        this.backgroundThreadWorker.addPropertyChangeListener(new PropertyChangeListener(){
+            @Override
+            public void propertyChange(final PropertyChangeEvent event){
+                switch(event.getPropertyName()){
+                    case "progress":
+                        //WHEN setProgress() IS CALLED YOU CAN SET THE VALUE OF PROGRESS HERE
+                        prgBarRunningTIme.setValue((Integer) event.getNewValue());
+                        break;
+                    case "state":
+                        switch((SwingWorker.StateValue) event.getNewValue()){
+                            case DONE:
+                                //WHEN THE THREAD IS FINISHED HERE YOU CAN SET THE RESULTS
+                                prepareButtonsForRun();
+                                prgBarRunningTIme.setValue(100);
+                                backgroundThreadWorker = null;
+                                break;
+                            case STARTED:
+                                //IF NECESSARY DOSOMETHING HERE
+                                prgBarRunningTIme.setValue(0);
+                            case PENDING:
+                                //IF NECCESSARY DOSOMETHING HERE
+                                break;
+                        }
+                        break;
+                }
+            }
+        });
+    
+    this.backgroundThreadWorker.execute();
+  }
     
     
     /**
@@ -176,11 +244,11 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         lblMode = new javax.swing.JLabel();
         sldSubIntDuration = new javax.swing.JSlider();
         jLabel10 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnRun = new javax.swing.JButton();
         pnlWordsCount = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        btnClean = new javax.swing.JButton();
+        btnSave = new javax.swing.JButton();
         btnTestProgressBar = new javax.swing.JButton();
         btnGetJsonHTTP = new javax.swing.JButton();
         txtURL = new javax.swing.JTextField();
@@ -237,8 +305,10 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 50, 290, 250));
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jLabel2.setText("Words chosen by you");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 10, -1, -1));
+        jLabel2.setText("Top words in the seek time interval");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 10, -1, -1));
+
+        prgBarRunningTIme.setStringPainted(true);
         getContentPane().add(prgBarRunningTIme, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, 690, -1));
 
         txtNumberOfWords.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
@@ -299,6 +369,8 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
 
         getContentPane().add(pnlWordsSentiment, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 390, 760, 200));
 
+        lblMode.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        lblMode.setForeground(new java.awt.Color(255, 0, 51));
         lblMode.setText("TEST MODE, TEST GRAPHS");
         getContentPane().add(lblMode, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 360, -1, -1));
 
@@ -326,16 +398,16 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         });
         getContentPane().add(sldSubIntDuration, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 80, 320, 30));
 
-        jLabel10.setText("Subinterval duration");
+        jLabel10.setText("Subinterval duration: every 10 hours");
         getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(730, 50, -1, 30));
 
-        jButton1.setText("Run");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnRun.setText("Run");
+        btnRun.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnRunActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 230, 120, 70));
+        getContentPane().add(btnRun, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 230, 120, 70));
 
         javax.swing.GroupLayout pnlWordsCountLayout = new javax.swing.GroupLayout(pnlWordsCount);
         pnlWordsCount.setLayout(pnlWordsCountLayout);
@@ -354,21 +426,21 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         jLabel4.setText("(all data, from begin to end time according to records)");
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 30, -1, -1));
 
-        jButton3.setText("Clean");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        btnClean.setText("Clean");
+        btnClean.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                btnCleanActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(950, 230, 100, 70));
+        getContentPane().add(btnClean, new org.netbeans.lib.awtextra.AbsoluteConstraints(950, 230, 100, 70));
 
-        jButton4.setText("Save");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                btnSaveActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(840, 230, 100, 70));
+        getContentPane().add(btnSave, new org.netbeans.lib.awtextra.AbsoluteConstraints(840, 230, 100, 70));
 
         btnTestProgressBar.setText("Test PB");
         btnTestProgressBar.addActionListener(new java.awt.event.ActionListener() {
@@ -448,17 +520,26 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
             Logger.getLogger(SentimetAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        //JOptionPane.showMessageDialog(null, "FROM: " + fromDateTime + "   TO: " + toDateTime , "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);
+        DBManager dbmanager = new DBManager(2, this.fromDateTime, this.toDateTime);
         
+        ArrayList<EntryElements> list;
+        list = dbmanager.selectListForMainWindow();
+        
+        //POPULATE CONTROLLER ON GUI
+        for(int i=0; i<Integer.parseInt(this.txtNumberOfWords.getText()); i++){
+           this.tableModelTopTen.addRow(new Object[] { list.get(i).getKey(), list.get(i).getValue(), Boolean.FALSE });
+        }
     }
     
     private void sldSubIntDurationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sldSubIntDurationMouseClicked
         // TODO add your handling code here:
-         this.jLabel10.setText(String.valueOf("Every " + this.sldSubIntDuration.getValue()) + " hours" );
+         this.jLabel10.setText(String.valueOf("Subinterval duration: every " + this.sldSubIntDuration.getValue()) + " hours" );
     }//GEN-LAST:event_sldSubIntDurationMouseClicked
 
     private void sldSubIntDurationMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sldSubIntDurationMouseDragged
         // TODO add your handling code here:
-         this.jLabel10.setText(String.valueOf("Every " + this.sldSubIntDuration.getValue()) + " hours" );
+         this.jLabel10.setText(String.valueOf("Subinterval duration: every " + this.sldSubIntDuration.getValue()) + " hours" );
     }//GEN-LAST:event_sldSubIntDurationMouseDragged
 
     private void sldSubIntDurationMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sldSubIntDurationMouseMoved
@@ -471,72 +552,45 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
       
     }//GEN-LAST:event_sldSubIntDurationMousePressed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRunActionPerformed
+        // TODO add your handling code here:
+        if(this.btnRun.getText().equals("RUN")){
+            this.runWorkingCycle();
+            
+            this.prepareButtonsForCancel();
+        }else if(this.btnRun.getText().equals("CANCEL")){
+            this.cancelWorkingThread();
+            
+            this.prepareButtonsForRun();
+        }
+        
+    }//GEN-LAST:event_btnRunActionPerformed
+
+    private void btnCleanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCleanActionPerformed
         // TODO add your handling code here:
         this.cleanTheTableModels();
         this.charts.initializeCountWordsXYSeriesChart(this.pnlWordsCount, "Word Count", "count", "word", 0, "words");
-        
-        String response = this.getJsonWithHTTPRequest();
-        
-        System.out.println(this.spnDayChoser.getValue());
-        
-        JsonParserT jsonparsert = new JsonParserT(this.tableModelTitles);
-        LinkedList<EntryElements> list = jsonparsert.selectListForMainWindow(response);
-        
-        //POPULATE CONTROLLER ON GUI
-        for(int i=0; i<Integer.parseInt(this.txtNumberOfWords.getText()); i++){
-           this.tableModelTopTen.addRow(new Object[] { list.get(i).getKey(), list.get(i).getValue(), Boolean.FALSE });
-        }
+    }//GEN-LAST:event_btnCleanActionPerformed
 
-        //JSON LOGIC BELOW, BUILD SMALL LISTS ACCORDING TO THE INTERVALS AND COUNTS, ORDERS ON ALL OF THEM
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM d H:m:s z yyyy", Locale.ENGLISH);
-        LocalDateTime fromDate_parsed = LocalDateTime.parse(this.spnDayChoser.getValue().toString(), formatter);
-        this.forNaming = fromDate_parsed;
-        LocalDateTime toDate_parsed = LocalDateTime.parse(this.spnToTime.getValue().toString(), formatter);
-        
-        this.interval = this.sldSubIntDuration.getValue();
-        this.lblMode.setText("VALUES: Start Time = " + fromDate_parsed.toString() + " - End Time = " + toDate_parsed + " - Interval = " + this.interval);
-
-        //MAIL FUNCTION FOR READING JSON, FILTERING, COUNTING AND ORDERING FOR EACH INTERVAL
-        this.listsForPloting_fromListManager = jsonparsert.selectListForMainWindow_forPloting_linkedListOfLinkedLists(fromDate_parsed, toDate_parsed, this.interval, response);
-        
-        if(this.listsForPloting_fromListManager == null){
-            this.localPlotingPolice_variableToCheckIfListIsFull_ifNullThenDoNotPlotGraph = 0;
-            JOptionPane.showMessageDialog(null, "The lists come back empty with current search criteria, please modify search and run again! Check interval ;)", "Lists with Data", JOptionPane.INFORMATION_MESSAGE);
-        }else{
-            this.localPlotingPolice_variableToCheckIfListIsFull_ifNullThenDoNotPlotGraph = 1;
-        }
-        
-        //CHECK INTEGRITY AND LISTS
-        //listsForPloting_fromListManager.checkIntegrityAndData();
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-        this.cleanTheTableModels();
-        this.charts.initializeCountWordsXYSeriesChart(this.pnlWordsCount, "Word Count", "count", "word", 0, "words");
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
         Date d = new Date();
         this.charts.saveWordCountsChartPNG(d.toString().replace(":", "").replace(" ", "") + "INTERV" + this.interval);
-    }//GEN-LAST:event_jButton4ActionPerformed
+    }//GEN-LAST:event_btnSaveActionPerformed
 
     private void btnTestProgressBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestProgressBarActionPerformed
         // TODO add your handling code here:
+        this.prgBarRunningTIme.setMaximum(100);
+        this.prgBarRunningTIme.setMinimum(0);
         
-        this.prgBarRunningTIme.setIndeterminate(true);
-        
-        //this.prgBarRunningTIme.setMaximum(100);
-        //this.prgBarRunningTIme.setMinimum(0);
-        
-       
+        for(int i=0; i<=100; i = i + 10){
+            this.prgBarRunningTIme.setValue(i);
+        }
     }//GEN-LAST:event_btnTestProgressBarActionPerformed
 
     private void btnGetJsonHTTPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetJsonHTTPActionPerformed
         // TODO add your handling code here:
-        String response = this.getJsonWithHTTPRequest();
+        String response = HTTPRequests.getJsonWithHTTPRequest(this.spnDayChoser.getValue().toString(), this.spnToTime.getValue().toString(), this.txtKeyword.getText(), this.txtDecode.getText(), this.txtURL.getText());
         
         if(response == null){
             JOptionPane.showMessageDialog(null, "HTTP Request Error", "HTTP Request", JOptionPane.INFORMATION_MESSAGE);
@@ -573,19 +627,21 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SentimetAnalyzer().setVisible(true);
-            }
+        //NEEDED FOR MULTI THREADING 
+        SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+            new SentimetAnalyzer().setVisible(true);
+          }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnClean;
     private javax.swing.JButton btnGetJsonHTTP;
+    private javax.swing.JButton btnRun;
+    private javax.swing.JButton btnSave;
     private javax.swing.JButton btnTestProgressBar;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
