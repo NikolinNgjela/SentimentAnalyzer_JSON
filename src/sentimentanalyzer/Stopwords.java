@@ -7,7 +7,7 @@
 package sentimentanalyzer;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -18,7 +18,7 @@ public class Stopwords {
     
     public String fileWithStopwords;
     public String token;
-    public LinkedList<String> words;
+    public ArrayList<String> words;
     public String[] wordsArray;
     
     
@@ -26,7 +26,7 @@ public class Stopwords {
     public Stopwords(){
         this.fileWithStopwords = "stopwords_ita.txt";
         this.token = "";
-        this.words = new LinkedList();
+        this.words = new ArrayList();
         
         try{
             //This is to read .txt file from the local hard disc, from the execution file.
@@ -55,7 +55,7 @@ public class Stopwords {
         }
     }
     
-    public LinkedList<String> eraseStopwordsFromList(LinkedList<String> titleWords){      
+    public ArrayList<String> eraseStopwordsFromList(ArrayList<String> titleWords){      
         //Java function
         titleWords.removeAll(this.words);
         
