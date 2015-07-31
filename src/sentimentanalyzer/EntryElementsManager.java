@@ -6,7 +6,7 @@
 package sentimentanalyzer;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 /**
@@ -32,16 +32,16 @@ public class EntryElementsManager {
     public LocalDateTime dtHelper_from;
     public LocalDateTime dtHelper_to;
     
-    public LinkedList<EntryElementsDate> wordsAndCreatedDates_ofManager;
-    public LinkedList<EntryElementsHolder> lists;
+    public ArrayList<EntryElementsDate> wordsAndCreatedDates_ofManager;
+    public ArrayList<EntryElementsHolder> lists;
     
-    public EntryElementsManager(int interval, LocalDateTime from, LocalDateTime to, LinkedList<EntryElementsDate> wordsAndCreatedDates){
+    public EntryElementsManager(int interval, LocalDateTime from, LocalDateTime to, ArrayList<EntryElementsDate> wordsAndCreatedDates){
         this.interval = interval;
         this.from = from;
         this.to = to;
      
-        this.lists = new LinkedList<>();
-        this.wordsAndCreatedDates_ofManager = new LinkedList<>();
+        this.lists = new ArrayList<>();
+        this.wordsAndCreatedDates_ofManager = new ArrayList<>();
         
         this.wordsAndCreatedDates_ofManager = wordsAndCreatedDates;
         
@@ -49,8 +49,8 @@ public class EntryElementsManager {
     }
     
     public EntryElementsManager(){
-        this.lists = new LinkedList<>();
-        this.wordsAndCreatedDates_ofManager = new LinkedList<>();
+        this.lists = new ArrayList<>();
+        this.wordsAndCreatedDates_ofManager = new ArrayList<>();
     }
     
     //FUNCTION IN ORDER TO CREATE SMALL LISTS WITH INTERVAL TIME FRAMES
@@ -59,23 +59,29 @@ public class EntryElementsManager {
         int i = this.interval;
         
         LocalDateTime localFrom = this.from;
-        LocalDateTime localTo = this.from.plusHours(i);
+        LocalDateTime localTo = this.from; //this.from.plusHours(i);
+        //JOptionPane.showMessageDialog(null, "FROM: " + this.from, "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);
+        //JOptionPane.showMessageDialog(null, "FROM: " + this.to, "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);
         
         while(localTo.compareTo(this.to) <= 0){
-            //JOptionPane.showMessageDialog(null, "FROM: " + localFrom + "   TO: " + localTo , "The time you have selected...", JOptionPane.INFORMATION_MESSAGE);
+            localTo = localTo.plusHours(i);
+            //System.out.println("    hours: " + localTo + " - " + this.to);
+            //System.out.println("DIFF hours: " + ChronoUnit.HOURS.between(localTo, this.to));
             //TAKING STRONGLY INTO CONSIDERATION THAT INTERVAL IS ONLY IN HOURS**ONLY HOURS
             this.dtHelper_from = localFrom;
             this.dtHelper_to = localTo;
             
             EntryElementsHolder entry = new EntryElementsHolder(this.dtHelper_from, this.dtHelper_to);
             entry.cicleOfData = this.cicles;
+            
             this.lists.add(entry);
             
             localFrom = localFrom.plusHours(i);
-            localTo = localTo.plusHours(i);
             
             this.cicles++;
         }
+        
+        //JOptionPane.showMessageDialog(null, "A total of " + this.cicles + " cicles generated.", "Intervals", JOptionPane.INFORMATION_MESSAGE);
     }
     
     //POPULATES ALL THE TIMEFRAMES ACCORDINGLY WITH DATA FROM THE WORDS, STILL NOT COUNTED BUT INSIDE THE RIGHT DIVISION
@@ -140,5 +146,3 @@ public class EntryElementsManager {
         }
     }
 }
-
-
