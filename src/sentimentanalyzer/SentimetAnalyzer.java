@@ -679,3 +679,4 @@ public class SentimetAnalyzer extends javax.swing.JFrame {
     private javax.swing.JTextField txtURL;
     // End of variables declaration//GEN-END:variables
 }
+
