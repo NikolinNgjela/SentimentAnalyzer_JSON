@@ -6,8 +6,8 @@
 package sentimentanalyzer;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 
 /**
  *
@@ -18,22 +18,22 @@ public class EntryElementsHolder {
     public LocalDateTime from;
     public LocalDateTime to;
     public int cicleOfData = 0;
-    
-    public LinkedList<EntryElementsDate> wordsAndCreatedDates_ofHolder;
-    public LinkedList<EntryElementsDate> storeCountedWords_ofHolder;
-    public LinkedList<EntryElementsDate> holderForCountingProcess;
+
+    public ArrayList<EntryElementsDate> wordsAndCreatedDates_ofHolder;
+    public ArrayList<EntryElementsDate> storeCountedWords_ofHolder;
+    public ArrayList<EntryElementsDate> holderForCountingProcess;
     
     public EntryElementsHolder(LocalDateTime from, LocalDateTime to){
         this.from = from;
         this.to = to;
         
-        this.wordsAndCreatedDates_ofHolder = new LinkedList<>();
-        this.storeCountedWords_ofHolder = new LinkedList<>();
-        this.holderForCountingProcess = new LinkedList<>();
+        this.wordsAndCreatedDates_ofHolder = new ArrayList<>();
+        this.storeCountedWords_ofHolder = new ArrayList<>();
+        this.holderForCountingProcess = new ArrayList<>();
     }
     
     public EntryElementsHolder(){
-           this.wordsAndCreatedDates_ofHolder = new LinkedList<>();
+        this.wordsAndCreatedDates_ofHolder = new ArrayList<>();
     }
     
     //FUNCTION FOR COUNTING THE OCCURANCE OF EACH WORD IN THE LIST
@@ -60,7 +60,7 @@ public class EntryElementsHolder {
     
 
     //SAME AS Collections.frequency BUT ADAPTED FOR OUR OWN SCENARIO
-    public int frequency_counter(LinkedList<EntryElementsDate> c, Object o) {
+    public int frequency_counter(ArrayList<EntryElementsDate> c, Object o) {
         int result = 0;
         
         if (o == null){
